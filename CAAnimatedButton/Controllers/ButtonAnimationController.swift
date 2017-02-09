@@ -10,7 +10,8 @@ import UIKit
 
 class ButtonAnimationController: UIViewController {
 
-    fileprivate var button = AnimatedButton()
+    fileprivate var animatingButton = AnimatedButton()
+    fileprivate var stopButton = AnimatedButton()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -19,6 +20,7 @@ class ButtonAnimationController: UIViewController {
         self.view.backgroundColor = UIColor.white
         
         setupButton()
+        setupStopButton()
         
         self.edgesForExtendedLayout = .bottom
     }
@@ -32,43 +34,69 @@ class ButtonAnimationController: UIViewController {
 extension ButtonAnimationController {
     
     func setupButton() {
-        self.view.addSubview(self.button)
-        self.button.backgroundColor = UIColor.orange
-        self.button.addTarget(
-            self,
-            action: #selector(buttonTapped),
-            for: .touchUpInside
-        )
-        self.button.setCornerRadius(radius: 25)
-        self.button.setSpinnerColor(color: UIColor.blue)
-        self.button.setTitle("Click here", for: .normal)
-        self.button.setTitleColor(UIColor.white, for: .normal)
-        self.button.titleLabel?.font = UIFont.mediumFont(size: 18)
-        self.button.translatesAutoresizingMaskIntoConstraints = false
-        
+        self.view.addSubview(self.animatingButton)
         let constaints = [
-            self.button.centerYAnchor.constraint(equalTo: self.view.centerYAnchor, constant: 0),
-            self.button.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 8),
-            self.button.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -8),
-            self.button.heightAnchor.constraint(equalToConstant: 50)
+            self.animatingButton.centerYAnchor.constraint(equalTo: self.view.centerYAnchor, constant: 0),
+            self.animatingButton.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 8),
+            self.animatingButton.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -8),
+            self.animatingButton.heightAnchor.constraint(equalToConstant: 50)
         ]
         NSLayoutConstraint.activate(constaints)
+        
+        self.animatingButton.backgroundColor = UIColor.orange
+        self.animatingButton.addTarget(
+            self,
+            action: #selector(animationButtonTapped),
+            for: .touchUpInside
+        )
+        self.animatingButton.setCornerRadius(radius: 25)
+        self.animatingButton.setSpinnerColor(color: UIColor.white)
+        self.animatingButton.setShrinkDuration(duration: 0.3)
+        self.animatingButton.setSpinerWidth(width: 1.5)
+        self.animatingButton.setTitle("Click here", for: .normal)
+        self.animatingButton.setTitleColor(UIColor.white, for: .normal)
+        self.animatingButton.titleLabel?.font = UIFont.mediumFont(size: 18)
+        self.animatingButton.translatesAutoresizingMaskIntoConstraints = false
+    }
+
+    func setupStopButton() {
+        self.view.addSubview(self.stopButton)
+        self.stopButton.translatesAutoresizingMaskIntoConstraints = false
+        let constaints = [
+            self.stopButton.centerXAnchor.constraint(equalTo: self.view.centerXAnchor, constant: 0),
+            self.stopButton.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 40),
+            self.stopButton.widthAnchor.constraint(equalToConstant: 200),
+            self.stopButton.heightAnchor.constraint(equalToConstant: 50)
+        ]
+        NSLayoutConstraint.activate(constaints)
+        self.stopButton.setTitle("Stop Animation", for: .normal)
+        self.stopButton.backgroundColor = UIColor.red
+        self.stopButton.addTarget(
+            self,
+            action: #selector(stoppButtonTapped),
+            for: .touchUpInside
+        )
     }
 }
 
 extension ButtonAnimationController {
+
+    func animationButtonTapped() {
+        self.animatingButton.startAnimating()
+    }
     
-    func buttonTapped() {
-        self.button.startAnimating()
-        DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(2), execute: {
-            self.button.stopAnimating()
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1), execute: { 
-                let sc = SecondController()
-                sc.transitioningDelegate = self
-                self.present(sc, animated: true, completion: nil)
-            })
-        })
+    func stoppButtonTapped() {
+        if self.animatingButton.isAnimating() {
+            let isAllowTransition = false
+            self.animatingButton.stopAnimating(isAllowTransition: isAllowTransition)
+            if isAllowTransition {
+                self.animatingButton.finishTransition(withDelay: 0.6, completion: {
+                    let sc = SecondController()
+                    sc.transitioningDelegate = self
+                    self.present(sc, animated: true, completion: nil)
+                })
+            }
+        }
     }
 }
 
